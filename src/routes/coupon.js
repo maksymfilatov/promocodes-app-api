@@ -1,19 +1,19 @@
 const { Router } = require('express')
 const auth = require('../middleware/auth')
 const authorize = require('../middleware/authorize')
-const Promotion = require('../models/promotion')
+const Coupon = require('../models/coupon')
 const Template = require('../models/template')
 
-const promotionRouter = new Router()
+const couponRouter = new Router()
 
-promotionRouter.route('/')
+couponRouter.route('/')
     .post(auth, authorize('employee'), async (req, res, next) => {
         try {
             const template = await Template.findById(req.body.template)
             if (!template || !template.establishment.equals(req.user.establishment)) return res.status(404).send()
-            const promotion = new Promotion(req.body)
-            await promotion.save()
-            res.status(201).send(promotion)
+            const coupon = new Coupon(req.body)
+            await coupon.save()
+            res.status(201).send(coupon)
         } catch (err) {
             next(err)
         }
@@ -27,26 +27,26 @@ promotionRouter.route('/')
         }
 
         try {
-            let promotions = await Promotion.find({ user: req.user._id }, null, {
+            let coupons = await Coupon.find({ user: req.user._id }, null, {
                 limit: parseInt(req.query.limit),
                 skip: parseInt(req.query.skip),
                 sort
             }).populate('template')
 
-            // Delete all expired promotions
+            // Delete all expired coupons
             const currTime = new Date()
             let prom = []
-            promotions = promotions.filter(promotion => {
-                const diff = (currTime.getTime() - promotion.createdAt.getTime()) / (1000 * 3600 * 24)
-                if (diff >= promotion.expiration) {
-                    prom.push(promotion.remove())
+            coupons = coupons.filter(coupon => {
+                const diff = (currTime.getTime() - coupon.createdAt.getTime()) / (1000 * 3600 * 24)
+                if (diff >= coupon.expiration) {
+                    prom.push(coupon.remove())
                     return false
                 }
                 return true
             })
             await Promise.all(prom)
 
-            res.send(promotions)
+            res.send(coupons)
         } catch (err) {
             next(err)
         }
@@ -54,19 +54,19 @@ promotionRouter.route('/')
 
 
 
-promotionRouter.route('/:id')
+couponRouter.route('/:id')
     .delete(auth, authorize(['client', 'employee']), async (req, res, next) => {
         try {
-            let promotion
+            let coupon
             if (req.user.role === 'client') {
-                promotion = await Promotion.findOneAndDelete({ _id: req.params.id, user: req.user._id })
-                if (!promotion) return res.status(404).send()
+                coupon = await Coupon.findOneAndDelete({ _id: req.params.id, user: req.user._id })
+                if (!coupon) return res.status(404).send()
             } else if (req.user.role === 'employee') {
-                promotion = await Promotion.findById(req.params.id).populate('template')
-                if (!promotion || !promotion.template.establishment.equals(req.user.establishment)) return res.status(404).send()
-                await promotion.remove()
+                coupon = await Coupon.findById(req.params.id).populate('template')
+                if (!coupon || !coupon.template.establishment.equals(req.user.establishment)) return res.status(404).send()
+                await coupon.remove()
             }
-            res.send(promotion)
+            res.send(coupon)
         } catch (err) {
             next(err)
         }
@@ -75,12 +75,12 @@ promotionRouter.route('/:id')
         try {
             if (Object.keys(req.body).length != 1 || !req.body.user)
                 throw new Error()
-            const promotion = await Promotion.findOneAndUpdate({ _id: req.params.id, user: req.user._id }, { user: req.body.user }, { new: true })
-            if (!promotion) return res.status(404).send()
-            res.send(promotion)
+            const coupon = await Coupon.findOneAndUpdate({ _id: req.params.id, user: req.user._id }, { user: req.body.user }, { new: true })
+            if (!coupon) return res.status(404).send()
+            res.send(coupon)
         } catch (err) {
             res.status(400).send()
         }
     })
 
-module.exports = promotionRouter
+module.exports = couponRouter

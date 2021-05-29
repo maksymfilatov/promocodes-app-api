@@ -2,7 +2,7 @@ const { Schema, model } = require('mongoose')
 const validator = require('validator')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
-const Promotion = require('./promotion')
+const Promotion = require('./coupon')
 
 const userSchema = new Schema({
     name: {

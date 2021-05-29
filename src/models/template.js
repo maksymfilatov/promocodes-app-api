@@ -1,5 +1,5 @@
 const { Schema, model } = require('mongoose')
-const Promotion = require('./promotion')
+const Promotion = require('./coupon')
 
 const templateSchema = new Schema({
     title: {

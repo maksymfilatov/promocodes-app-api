@@ -1,6 +1,6 @@
 const { Schema, model } = require('mongoose')
 
-const promotionSchema = new Schema({
+const couponSchema = new Schema({
     user: {
         type: Schema.Types.ObjectId,
         required: [true, 'User id is required.'],
@@ -20,4 +20,4 @@ const promotionSchema = new Schema({
     }
 }, { timestamps: true })
 
-module.exports = model('Promotion', promotionSchema)
+module.exports = model('Coupon', couponSchema)
