@@ -4,7 +4,7 @@ const establishmentRouter = require('./routes/establishment')
 const couponRouter = require('./routes/coupon')
 const templateRouter = require('./routes/template')
 const userRouter = require('./routes/user')
-const errorHandler = require('./middleware/errorHandler')
+const errMiddleware = require('./middleware/errMiddleware')
 
 const app = express()
 
@@ -13,7 +13,7 @@ app.use('/users', userRouter)
 app.use('/establishments', establishmentRouter)
 app.use('/templates', templateRouter)
 app.use('/coupons', couponRouter)
-app.use(errorHandler)
+app.use(errMiddleware)
 
 module.exports = app
 

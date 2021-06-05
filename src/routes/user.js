@@ -8,7 +8,7 @@ const userRouter = new Router()
 userRouter.post('/client', async (req, res, next) => {
     try {
         const user = new User(req.body)
-        const token = await user.generateAuthToken()
+        const token = await user.generateAccessToken()
         res.status(201).send({ user, token })
     } catch (err) {
         next(err)
@@ -17,17 +17,17 @@ userRouter.post('/client', async (req, res, next) => {
 
 userRouter.post('/employee', async (req, res, next) => {
     try {
-        const establishment = await Establishment.findOne({ name: req.body.establishment })
+        const establishment = await Establishment.findOne({ name: req.body.establishmentId })
         if (!establishment) return res.status(404).send()
         const user = new User({
             name: req.body.name,
             email: req.body.email,
             password: req.body.password,
             role: 'employee',
-            establishment: establishment._id
+            establishmentId: establishment._id
         })
         await user.save()
-        const token = await user.generateAuthToken()
+        const token = await user.generateAccessToken()
         res.status(201).send({ user, token })
     } catch (err) {
         next(err)
@@ -36,8 +36,8 @@ userRouter.post('/employee', async (req, res, next) => {
 
 userRouter.post('/login', async (req, res, next) => {
     try {
-        const user = await User.findByCredentials(req.body.email, req.body.password)
-        const token = await user.generateAuthToken()
+        const user = await User.authenticateByCredentials(req.body.email, req.body.password)
+        const token = await user.generateAccessToken()
         res.send({ user, token })
     } catch (err) {
         res.status(400).send({ messages: err.message })
@@ -69,14 +69,14 @@ userRouter.route('/me')
         res.send(req.user)
     })
     .patch(auth, async (req, res, next) => {
-        const updates = Object.keys(req.body)
-        const allowedUpdates = ['name', 'email', 'password']
-        const isValidOperation = updates.every(update => allowedUpdates.includes(update))
-        if (!isValidOperation)
+        const fields = Object.keys(req.body)
+        const allowedFields = ['name', 'email', 'password']
+        const isUpdateAllowed = fields.every(update => allowedFields.includes(update))
+        if (!isUpdateAllowed)
             return res.status(400).send({ messages: 'Ivalid updates!' })
 
         try {
-            updates.forEach(update => req.user[update] = req.body[update])
+            fields.forEach(update => req.user[update] = req.body[update])
             await req.user.save()
             res.send(req.user)
         } catch (err) {

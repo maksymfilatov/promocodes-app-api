@@ -31,14 +31,14 @@ const userSchema = new Schema({
         default: 'client',
         enum: ['client', 'employee']
     },
-    establishment: {
+    establishmentId: {
         type: Schema.Types.ObjectId,
         ref: 'Establishment'
     },
     tokens: [String]
 })
 
-userSchema.methods.generateAuthToken = async function () {
+userSchema.methods.generateAccessToken = async function () {
     const token = jwt.sign({ _id: this._id.toString() }, process.env.JWT_SECRET)
 
     this.tokens.push(token)
@@ -47,12 +47,12 @@ userSchema.methods.generateAuthToken = async function () {
     return token
 }
 
-userSchema.statics.findByCredentials = async (email, password) => {
+userSchema.statics.authenticateByCredentials = async (email, password) => {
     const user = await User.findOne({ email })
     if (!user)
         throw new Error('Unable to login')
-    const isMatch = await bcrypt.compare(password, user.password)
-    if (!isMatch)
+    const isCorrectPassword = await bcrypt.compare(password, user.password)
+    if (!isCorrectPassword)
         throw new Error('Unable to login')
     return user
 }

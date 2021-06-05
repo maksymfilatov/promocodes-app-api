@@ -1,23 +1,23 @@
-const { Schema, model } = require('mongoose')
 const validator = require('validator')
-const User = require('./user')
+const { Schema, model } = require('mongoose')
 const Template = require('./template')
+const User = require('./user')
 
 const establishmentSchema = new Schema({
     name: {
         type: String,
-        trim: true,
+        unique: true,
         required: [true, 'Establishment name is required.'],
-        unique: true
+        trim: true
     },
     phone: {
         type: String,
-        trim: true,
-        required: [true, 'Contact phone is required.'],
         validate(phone) {
             if (!validator.isMobilePhone(phone))
                 throw new Error('Phone is invalid.')
-        }
+        },
+        trim: true,
+        required: [true, 'Contact phone is required.']
     },
     email: {
         type: String,
@@ -38,7 +38,6 @@ const establishmentSchema = new Schema({
 })
 
 establishmentSchema.pre('remove', async function (next) {
-    console.log(this)
     const templates = await Template.find({ establishment: this._id })
     templates.forEach(template => template.remove())
     await User.deleteMany({ establishment: this._id })

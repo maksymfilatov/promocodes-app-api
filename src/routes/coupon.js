@@ -9,8 +9,8 @@ const couponRouter = new Router()
 couponRouter.route('/')
     .post(auth, authorize('employee'), async (req, res, next) => {
         try {
-            const template = await Template.findById(req.body.template)
-            if (!template || !template.establishment.equals(req.user.establishment)) return res.status(404).send()
+            const template = await Template.findById(req.body.templateId)
+            if (!template || !template.establishmentId.equals(req.user.establishmentId)) return res.status(404).send()
             const coupon = new Coupon(req.body)
             await coupon.save()
             res.status(201).send(coupon)
@@ -27,11 +27,11 @@ couponRouter.route('/')
         }
 
         try {
-            let coupons = await Coupon.find({ user: req.user._id }, null, {
+            let coupons = await Coupon.find({ userId: req.user._id }, null, {
                 limit: parseInt(req.query.limit),
                 skip: parseInt(req.query.skip),
                 sort
-            }).populate('template')
+            }).populate('templateId')
 
             // Delete all expired coupons
             const currTime = new Date()
@@ -59,11 +59,11 @@ couponRouter.route('/:id')
         try {
             let coupon
             if (req.user.role === 'client') {
-                coupon = await Coupon.findOneAndDelete({ _id: req.params.id, user: req.user._id })
+                coupon = await Coupon.findOneAndDelete({ _id: req.params.id, userId: req.user._id })
                 if (!coupon) return res.status(404).send()
             } else if (req.user.role === 'employee') {
-                coupon = await Coupon.findById(req.params.id).populate('template')
-                if (!coupon || !coupon.template.establishment.equals(req.user.establishment)) return res.status(404).send()
+                coupon = await Coupon.findById(req.params.id).populate('templateId')
+                if (!coupon || !coupon.templateId.establishmentId.equals(req.user.establishmentId)) return res.status(404).send()
                 await coupon.remove()
             }
             res.send(coupon)
@@ -73,9 +73,9 @@ couponRouter.route('/:id')
     })
     .patch(auth, authorize('client'), async (req, res, next) => {
         try {
-            if (Object.keys(req.body).length != 1 || !req.body.user)
+            if (Object.keys(req.body).length != 1 || !req.body.userId)
                 throw new Error()
-            const coupon = await Coupon.findOneAndUpdate({ _id: req.params.id, user: req.user._id }, { user: req.body.user }, { new: true })
+            const coupon = await Coupon.findOneAndUpdate({ _id: req.params.id, userId: req.user._id }, { userId: req.body.userId }, { new: true })
             if (!coupon) return res.status(404).send()
             res.send(coupon)
         } catch (err) {

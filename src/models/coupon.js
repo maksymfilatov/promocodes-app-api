@@ -1,13 +1,13 @@
 const { Schema, model } = require('mongoose')
 
 const couponSchema = new Schema({
-    user: {
+    userId: {
         type: Schema.Types.ObjectId,
         required: [true, 'User id is required.'],
         ref: 'User',
         index: true
     },
-    template: {
+    templateId: {
         type: Schema.Types.ObjectId,
         required: [true, 'Template id is required.'],
         ref: 'Template'

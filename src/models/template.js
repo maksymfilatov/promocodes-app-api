@@ -6,6 +6,7 @@ const templateSchema = new Schema({
         type: String,
         required: [true, 'Template title is required.'],
         trim: true,
+        unique: true
     },
     content: {
         type: String,
@@ -15,7 +16,7 @@ const templateSchema = new Schema({
     image: {
         type: Buffer
     },
-    establishment: {
+    establishmentId: {
         type: Schema.Types.ObjectId,
         required: [true, 'Establishment id is required.'],
         ref: 'Establishment',
@@ -24,11 +25,6 @@ const templateSchema = new Schema({
 })
 
 templateSchema.pre('remove', async function (next) {
-    await Promotion.deleteMany({ template: this._id })
-    next()
-})
-
-templateSchema.pre('deleteMany', async function (next) {
     await Promotion.deleteMany({ template: this._id })
     next()
 })
