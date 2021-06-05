@@ -17,7 +17,7 @@ userRouter.post('/client', async (req, res, next) => {
 
 userRouter.post('/employee', async (req, res, next) => {
     try {
-        const establishment = await Establishment.findOne({ name: req.body.establishmentId })
+        const establishment = await Establishment.findOne({ name: req.body.establishmentName })
         if (!establishment) return res.status(404).send()
         const user = new User({
             name: req.body.name,
